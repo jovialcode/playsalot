@@ -1,0 +1,36 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  game-server:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.game-server
+    environment:
+      PORT: 2567
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-do-not-use-in-production}
+    ports:
+      - "2567:2567"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:2567
+        NEXT_PUBLIC_WS_URL: ws://localhost:2567
+    ports:
+      - "3000:3000"
+    depends_on:
+      - game-server

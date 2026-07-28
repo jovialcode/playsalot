@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+FROM node:22-alpine AS base
+RUN npm install -g pnpm@11.17.0 turbo@2.7.2
+
+# 1. Prune the monorepo down to only what @playsalot/web needs
+FROM base AS pruner
+WORKDIR /app
+COPY . .
+RUN turbo prune @playsalot/web --docker
+
+# 2. Install deps and build using the pruned lockfile/sources
+FROM base AS installer
+WORKDIR /app
+COPY --from=pruner /app/out/json/ .
+RUN pnpm install --frozen-lockfile
+COPY --from=pruner /app/out/full/ .
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+RUN pnpm turbo run build --filter=@playsalot/web
+
+# 3. Minimal runtime image using Next.js standalone output
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=installer /app/apps/web/public ./apps/web/public
+COPY --from=installer /app/apps/web/.next/standalone ./
+COPY --from=installer /app/apps/web/.next/static ./apps/web/.next/static
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]

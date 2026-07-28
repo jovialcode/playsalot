@@ -1,0 +1,22 @@
+{
+  "name": "playsalot",
+  "private": true,
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "check-types": "turbo run check-types",
+    "test": "pnpm --filter @playsalot/game-omok test && pnpm --filter @playsalot/web test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "turbo": "^2.7.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.57.0",
+    "vitest": "^4.0.18"
+  }
+}

@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "./design-system/colors_and_type.css";
+@import "./design-system/components.css";
+@import "tailwindcss";
+
+@keyframes spin { to { transform: rotate(360deg) } }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes sheetUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 8px) } to { opacity: 1; transform: translate(-50%, 0) } }
+
+
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--mist);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sage-soft);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mist) transparent;
+}

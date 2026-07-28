@@ -1,0 +1,133 @@
+/* Healcia component primitives — small, copy-paste-able. Pairs with colors_and_type.css */
+
+/* ───── Buttons ───── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  padding: 10px 18px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease),
+              color var(--t-fast) var(--ease),
+              transform var(--t-fast) var(--ease),
+              box-shadow var(--t-fast) var(--ease);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+.btn[disabled], .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--sage);
+  color: var(--cream);
+  box-shadow: 0 1px 2px rgba(27,31,28,0.08);
+}
+.btn-primary:hover { background: var(--sage-deep); }
+
+.btn-secondary {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--mist);
+}
+.btn-secondary:hover { background: var(--cream-deep); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.btn-ghost:hover { background: var(--cream-deep); }
+
+.btn-accent {
+  background: var(--coral);
+  color: #FBFAF5;
+}
+.btn-accent:hover { background: var(--coral-deep); }
+
+.btn-sm { padding: 6px 12px; font-size: 13px; border-radius: var(--r-sm); }
+.btn-lg { padding: 14px 24px; font-size: 16px; }
+
+/* ───── Inputs ───── */
+.input {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--mist);
+  border-radius: var(--r-lg);
+  padding: 10px 14px;
+  width: 100%;
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+.input::placeholder { color: var(--ink-faint); }
+.input:hover { border-color: #C9C3B5; }
+.input:focus { outline: 2px solid var(--sage); outline-offset: 2px; border-color: transparent; }
+
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+
+/* ───── Chips & badges ───── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--sage-tint);
+  color: var(--sage-deep);
+  border: 1px solid transparent;
+}
+.chip-neutral { background: var(--cream-deep); color: var(--ink-soft); }
+.chip-warn { background: var(--warn-tint); color: #6E4A1A; }
+.chip-coral { background: var(--coral-tint); color: var(--coral-deep); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  background: var(--cream-deep);
+  color: var(--ink-soft);
+}
+
+/* ───── Cards ───── */
+.card-paper {
+  background: var(--paper);
+  border: var(--border-quiet);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  padding: 20px 22px;
+}
+
+/* ───── Callouts ───── */
+.callout {
+  background: var(--sage-tint);
+  color: var(--sage-deep);
+  border-left: 3px solid var(--sage);
+  padding: 14px 16px;
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.callout-warn { background: var(--warn-tint); color: #6E4A1A; border-color: var(--warn); }
+.callout-danger { background: var(--danger-tint); color: var(--danger); border-color: var(--danger); }

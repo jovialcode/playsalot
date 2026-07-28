@@ -1,0 +1,11 @@
+/* ============================================================
+   Healcia Design System — root stylesheet
+   ============================================================
+   Single entry point for consumers. Link this one file:
+     <link rel="stylesheet" href="styles.css">
+   It pulls in design tokens, base element styles, and the
+   component primitives.
+   ============================================================ */
+
+@import url('colors_and_type.css');  /* tokens (color, type, spacing, radii, shadow, motion) + base elements */
+@import url('components.css');        /* buttons, inputs, chips, badges, cards, callouts */
