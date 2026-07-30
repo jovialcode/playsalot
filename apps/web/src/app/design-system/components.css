@@ -119,6 +119,33 @@
   padding: 20px 22px;
 }
 
+/* Tappable card: press-down feedback everywhere, lift-on-hover where hover exists */
+.card-interactive {
+  transition: transform var(--t-fast) var(--ease),
+              box-shadow var(--t-fast) var(--ease),
+              border-color var(--t-fast) var(--ease);
+  will-change: transform;
+}
+.card-interactive:active { transform: scale(0.96); }
+@media (hover: hover) {
+  .card-interactive:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-2);
+    border-color: var(--sage-soft);
+  }
+}
+
+/* Staggered list/grid entrance — set `animation-delay` inline via style per item */
+.stagger-in {
+  opacity: 0;
+  animation: riseIn var(--t-slow) var(--ease) forwards;
+}
+
+/* Live/active pulse dot */
+.dot-live {
+  animation: dotPulse 1.8s var(--ease) infinite;
+}
+
 /* ───── Callouts ───── */
 .callout {
   background: var(--sage-tint);

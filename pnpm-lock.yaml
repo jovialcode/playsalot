@@ -41,12 +41,36 @@ importers:
       '@colyseus/ws-transport':
         specifier: ^0.16.0
         version: 0.16.5(@colyseus/core@0.16.24(@colyseus/schema@3.0.76)(@pm2/io@6.1.0(supports-color@7.2.0))(supports-color@7.2.0))
+      '@playsalot/game-battleship':
+        specifier: workspace:*
+        version: link:../../packages/games/battleship
+      '@playsalot/game-burumable':
+        specifier: workspace:*
+        version: link:../../packages/games/burumable
       '@playsalot/game-engine-core':
         specifier: workspace:*
         version: link:../../packages/game-engine-core
+      '@playsalot/game-gem-merchants':
+        specifier: workspace:*
+        version: link:../../packages/games/gem-merchants
+      '@playsalot/game-gostop':
+        specifier: workspace:*
+        version: link:../../packages/games/gostop
+      '@playsalot/game-halligalli':
+        specifier: workspace:*
+        version: link:../../packages/games/halligalli
       '@playsalot/game-omok':
         specifier: workspace:*
         version: link:../../packages/games/omok
+      '@playsalot/game-president':
+        specifier: workspace:*
+        version: link:../../packages/games/president
+      '@playsalot/game-uno':
+        specifier: workspace:*
+        version: link:../../packages/games/uno
+      '@playsalot/game-yutnori':
+        specifier: workspace:*
+        version: link:../../packages/games/yutnori
       '@playsalot/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
@@ -125,7 +149,7 @@ importers:
         specifier: ^4
         version: 4.3.3
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/config: {}
@@ -140,7 +164,111 @@ importers:
         specifier: ^5.9.2
         version: 5.9.3
 
+  packages/games/battleship:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/burumable:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/gem-merchants:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/gostop:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/halligalli:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
   packages/games/omok:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/president:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/uno:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/yutnori:
     dependencies:
       '@colyseus/schema':
         specifier: ^3.0.0

@@ -1,6 +1,14 @@
 import type { ComponentType } from "react";
 import type { Room } from "colyseus.js";
 import { OmokBoard } from "@/components/game/OmokBoard";
+import { BurumableBoard } from "@/components/game/BurumableBoard";
+import { HalliGalliBoard } from "@/components/game/HalliGalliBoard";
+import { UnoBoard } from "@/components/game/UnoBoard";
+import { YutnoriBoard } from "@/components/game/YutnoriBoard";
+import { BattleshipBoard } from "@/components/game/BattleshipBoard";
+import { GostopBoard } from "@/components/game/GostopBoard";
+import { PresidentBoard } from "@/components/game/PresidentBoard";
+import { GemMerchantsBoard } from "@/components/game/GemMerchantsBoard";
 
 export interface GameScreenProps {
   room: Room;
@@ -11,6 +19,14 @@ type GameScreen = ComponentType<GameScreenProps>;
 
 const gameScreens: ReadonlyMap<string, GameScreen> = new Map([
   ["omok", OmokBoard],
+  ["burumable", BurumableBoard],
+  ["uno", UnoBoard],
+  ["halli", HalliGalliBoard],
+  ["yutnori", YutnoriBoard],
+  ["battleship", BattleshipBoard],
+  ["gostop", GostopBoard],
+  ["president", PresidentBoard],
+  ["gem-merchants", GemMerchantsBoard],
 ]);
 
 export function getGameScreen(gameId: string): GameScreen | undefined {

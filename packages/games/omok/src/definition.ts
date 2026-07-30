@@ -1,4 +1,4 @@
-import type { GameDefinition, GameMoveResult, GameOverResult, PlayerId } from "@playsalot/game-engine-core";
+import type { GameDefinition, GameMoveResult, GameOverResult, PlayerId, PlayerInfo } from "@playsalot/game-engine-core";
 import { chooseOmokBotMove } from "./bot.js";
 import { checkFiveInARow, isBoardFull } from "./rules.js";
 import { BOARD_SIZE, OmokState, type OmokMove } from "./state.js";
@@ -13,8 +13,10 @@ export const omokDefinition: GameDefinition<OmokState, OmokMove> = {
     return new OmokState();
   },
 
-  addPlayer(state: OmokState, playerId: PlayerId): void {
+  addPlayer(state: OmokState, player: PlayerInfo | PlayerId): void {
+    const playerId = typeof player === "string" ? player : player.id;
     state.players.push(playerId);
+    state.playerNames.push(typeof player === "string" ? player : player.displayName);
   },
 
   applyMove(state: OmokState, playerId: PlayerId, move: OmokMove): GameMoveResult {

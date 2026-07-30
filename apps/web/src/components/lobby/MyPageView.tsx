@@ -8,7 +8,7 @@ export function MyPageView({ session }: MyPageViewProps) {
   return (
     <div className="flex flex-col">
       <div className="sticky top-0 z-20 border-b border-[var(--mist)] bg-[rgba(247,242,232,0.85)] backdrop-blur-[12px]">
-        <div className="p-[20px_22px_14px]">
+        <div className="p-[20px_22px_14px] pt-[calc(20px+env(safe-area-inset-top,0px))]">
           <div className="mb-[4px] text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--sage-soft)]">계정</div>
           <div className="text-[28px] font-medium tracking-[-0.02em] text-[var(--ink)] font-[var(--font-display)]">마이페이지</div>
         </div>
@@ -24,18 +24,12 @@ export function MyPageView({ session }: MyPageViewProps) {
           </div>
         </div>
         <div className="grid grid-cols-3 gap-[8px]">
-          <div className="rounded-[12px] border border-[var(--mist)] bg-[var(--paper)] p-[14px_8px] text-center">
-            <div className="text-[22px] font-medium text-[var(--ink)] font-[var(--font-display)]">24</div>
-            <div className="mt-[4px] text-[11px] text-[var(--ink-mute)]">승리</div>
-          </div>
-          <div className="rounded-[12px] border border-[var(--mist)] bg-[var(--paper)] p-[14px_8px] text-center">
-            <div className="text-[22px] font-medium text-[var(--ink)] font-[var(--font-display)]">42</div>
-            <div className="mt-[4px] text-[11px] text-[var(--ink-mute)]">플레이</div>
-          </div>
-          <div className="rounded-[12px] border border-[var(--mist)] bg-[var(--paper)] p-[14px_8px] text-center">
-            <div className="text-[22px] font-medium text-[var(--ink)] font-[var(--font-display)]">1,250</div>
-            <div className="mt-[4px] text-[11px] text-[var(--ink-mute)]">포인트</div>
-          </div>
+          {[["24", "승리"], ["42", "플레이"], ["1,250", "포인트"]].map(([value, label], i) => (
+            <div key={label} style={{ animationDelay: `${i * 60}ms` }} className="stagger-in card-interactive rounded-[12px] border border-[var(--mist)] bg-[var(--paper)] p-[14px_8px] text-center">
+              <div className="text-[22px] font-medium text-[var(--ink)] font-[var(--font-display)]">{value}</div>
+              <div className="mt-[4px] text-[11px] text-[var(--ink-mute)]">{label}</div>
+            </div>
+          ))}
         </div>
         <button className="btn btn-ghost text-[var(--danger)] justify-start px-0">로그아웃</button>
       </div>

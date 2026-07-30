@@ -13,4 +13,5 @@ export interface DesignGame {
   tintDeep: string;
   isPlayable: boolean;
   supportsBot: boolean;
+  image?: string;
 }

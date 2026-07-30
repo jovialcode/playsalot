@@ -30,6 +30,7 @@ export const BOARD_SIZE = 15;
 export class OmokState extends Schema {
   declare board: ArraySchema<number>;
   declare players: ArraySchema<string>;
+  declare playerNames: ArraySchema<string>;
   declare turnIndex: number;
   declare winnerId: string;
   declare isDraw: boolean;
@@ -38,6 +39,7 @@ export class OmokState extends Schema {
     super();
     this.board = new ArraySchema<number>(...Array(BOARD_SIZE * BOARD_SIZE).fill(0));
     this.players = new ArraySchema<string>();
+    this.playerNames = new ArraySchema<string>();
     this.turnIndex = 0;
     this.winnerId = "";
     this.isDraw = false;
@@ -47,6 +49,7 @@ export class OmokState extends Schema {
 defineTypes(OmokState, {
   board: ["number"],
   players: ["string"],
+  playerNames: ["string"],
   turnIndex: "number",
   winnerId: "string",
   isDraw: "boolean",

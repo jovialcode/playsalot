@@ -1,5 +1,5 @@
 import type { Schema } from "@colyseus/schema";
-import type { GameMoveResult, GameOverResult, PlayerId } from "./types.js";
+import type { GameMoveResult, GameOverResult, PlayerId, PlayerInfo } from "./types.js";
 
 /**
  * The contract every board game plugin must implement.
@@ -29,7 +29,7 @@ export interface GameDefinition<TState extends Schema = Schema, TMove = unknown>
   createInitialState(): TState;
 
   /** Registers a newly joined player by mutating the existing state (e.g. pushing onto a players list). */
-  addPlayer(state: TState, playerId: PlayerId): void;
+  addPlayer(state: TState, player: PlayerInfo | PlayerId): void;
 
   /** Validates and applies a move. Returns { ok: false, error } without mutating state if illegal. */
   applyMove(state: TState, playerId: PlayerId, move: TMove): GameMoveResult;

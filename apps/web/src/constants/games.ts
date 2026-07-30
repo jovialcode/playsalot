@@ -2,6 +2,10 @@ import type { GameCatalogEntry } from "@playsalot/shared-types";
 import type { DesignGame } from "@/types/game";
 
 export const DESIGN_GAMES: DesignGame[] = [
+  {id:'gem-merchants', name:'왕국의 보석 상단', category:'보드', playersLabel:'2인', minP:2, maxP:2, activeNow:0, isNew:true, isPlayable:false, supportsBot:true,
+   desc:'보석으로 상단 카드를 영입해 할인 엔진을 만들고 왕실의 선택을 받으세요.',
+   rules:['시장에서는 서로 다른 보석을 최대 2개 가져와요','카드 비용은 보석과 이미 영입한 카드의 할인으로 지불해요','카드는 점수와 영구 보석 할인을 줘요','먼저 명성 12점을 모으면 승리해요'],
+   tint:'var(--warn-tint)', tintDeep:'#6E4A1A'},
   {id:'uno', name:'우노', category:'카드', playersLabel:'2-8인', minP:2, maxP:8, activeNow:3842, isNew:false, isPlayable:false, supportsBot:false,
    desc:'숫자와 색을 맞춰 손에 든 카드를 모두 내는 정통 카드 게임.',
    rules:['카드 7장으로 시작해요','낸 카드와 같은 색이나 숫자를 내요','낼 카드가 없으면 카드를 한 장 가져와요','카드가 한 장 남으면 "우노"를 외쳐요'],
@@ -10,7 +14,7 @@ export const DESIGN_GAMES: DesignGame[] = [
    desc:'같은 과일이 정확히 5개가 되는 순간, 종을 먼저 치세요.',
    rules:['과일 카드를 한 장씩 순서대로 뒤집어요','같은 과일이 정확히 5개가 되면 종을 쳐요','가장 먼저 친 사람이 테이블의 카드를 모두 가져가요','카드를 다 가져간 사람이 승리해요'],
    tint:'var(--coral-tint)', tintDeep:'var(--coral-deep)'},
-  {id:'burumable', name:'부루마블 스타일', category:'보드', playersLabel:'2-6인', minP:2, maxP:6, activeNow:2976, isNew:false, isPlayable:false, supportsBot:false,
+  {id:'burumable', name:'부루마블 스타일', category:'보드', playersLabel:'2인', minP:2, maxP:2, activeNow:2976, isNew:false, isPlayable:false, supportsBot:false,
    desc:'땅을 사고 통행료를 걷으며, 파산을 피해 살아남는 보드 게임.',
    rules:['주사위를 굴려 말을 이동해요','도착한 땅을 사거나 통행료를 내요','건물을 올려 통행료를 올려요','파산하지 않고 가장 오래 남으면 승리해요'],
    tint:'var(--warn-tint)', tintDeep:'#6E4A1A'},

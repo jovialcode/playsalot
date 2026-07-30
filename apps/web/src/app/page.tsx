@@ -49,12 +49,12 @@ export default function LobbyPage() {
   if (room && session) {
     const gameInfo = lobbyGames.find(g => g.id === activeGameId);
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--cream-deep)] p-4 font-[var(--font-body)]">
-        <div className="relative flex h-full w-full max-w-[440px] flex-col overflow-hidden rounded-[24px] border border-[var(--mist)] bg-[var(--cream)] shadow-[var(--shadow-2)]">
-            <div className="flex items-center gap-[10px] border-b border-[var(--mist)] bg-[rgba(247,242,232,0.9)] p-[16px_16px_14px] backdrop-blur-[12px]">
-                <button 
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-[var(--cream-deep)] sm:p-4 font-[var(--font-body)]">
+        <div className="relative flex h-dvh w-full max-w-[440px] flex-col overflow-hidden bg-[var(--cream)] sm:h-full sm:rounded-[24px] sm:border sm:border-[var(--mist)] sm:shadow-[var(--shadow-2)]">
+            <div className="flex items-center gap-[10px] border-b border-[var(--mist)] bg-[rgba(247,242,232,0.9)] p-[calc(14px+env(safe-area-inset-top,0px))_16px_14px] backdrop-blur-[12px]">
+                <button
                     onClick={leaveRoom}
-                    className="inline-flex h-[36px] w-[36px] flex-shrink-0 items-center justify-center rounded-full border border-[var(--mist)] bg-[var(--paper)] text-[var(--ink)] cursor-pointer"
+                    className="inline-flex h-[40px] w-[40px] flex-shrink-0 items-center justify-center rounded-full border border-[var(--mist)] bg-[var(--paper)] text-[var(--ink)] cursor-pointer"
                 >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
@@ -62,7 +62,9 @@ export default function LobbyPage() {
                     {gameInfo?.name || "게임 중"}
                 </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-8">
+            <div className={activeGameId === "yutnori"
+              ? "flex min-h-0 flex-1 overflow-hidden p-[16px_12px_calc(16px+env(safe-area-inset-bottom,0px))] sm:p-8"
+              : "flex-1 overflow-y-auto p-[16px_12px_calc(16px+env(safe-area-inset-bottom,0px))] sm:p-8"}>
                 {activeGameId && <GameScreen gameId={activeGameId} room={room} guestId={session.guestId} />}
             </div>
         </div>
@@ -71,8 +73,8 @@ export default function LobbyPage() {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-[var(--cream-deep)] p-[24px] font-[var(--font-body)]">
-      <div className="relative flex min-h-[calc(100vh-48px)] w-[440px] max-w-full flex-col overflow-hidden rounded-[24px] border border-[var(--mist)] bg-[var(--cream)] shadow-[var(--shadow-2)]">
+    <div className="flex min-h-dvh justify-center bg-[var(--cream-deep)] sm:p-[24px] font-[var(--font-body)]">
+      <div className="relative flex h-dvh w-full max-w-[440px] flex-col overflow-hidden bg-[var(--cream)] sm:h-auto sm:min-h-[calc(100dvh-48px)] sm:rounded-[24px] sm:border sm:border-[var(--mist)] sm:shadow-[var(--shadow-2)]">
         
         {/* View Layer */}
         <div className="flex flex-1 flex-col overflow-y-auto">
@@ -85,11 +87,11 @@ export default function LobbyPage() {
               onShowToast={showToast}
             />
           ) : (
-            <>
+            <div key={activeTab} className="flex flex-1 flex-col animate-[viewFadeIn_260ms_var(--ease)]">
               {activeTab === "home" && (
-                <HomeView 
+                <HomeView
                   games={lobbyGames}
-                  onGameSelect={setSelectedGameId} 
+                  onGameSelect={setSelectedGameId}
                   onQuickMatch={startQuickMatch}
                   onViewAllGames={() => setActiveTab("games")}
                 />
@@ -103,7 +105,7 @@ export default function LobbyPage() {
               {activeTab === "my" && (
                 <MyPageView session={session} />
               )}
-            </>
+            </div>
           )}
         </div>
 

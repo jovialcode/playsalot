@@ -70,7 +70,7 @@ export class BoardGameRoom extends Room<Schema> {
   onJoin(client: Client, _options: JoinRoomOptions, auth: AuthPayload): void {
     this.playerIdByClient.set(client.sessionId, auth.guestId);
     this.joinedPlayerIds.push(auth.guestId);
-    this.definition.addPlayer(this.state, auth.guestId);
+    this.definition.addPlayer(this.state, { id: auth.guestId, displayName: auth.displayName });
 
     if (this.joinedPlayerIds.length !== this.maxClients) return;
 
@@ -79,7 +79,7 @@ export class BoardGameRoom extends Room<Schema> {
       for (let i = 0; i < botsNeeded; i += 1) {
         const botId = `bot-${i}`;
         this.botPlayerIds.push(botId);
-        this.definition.addPlayer(this.state, botId);
+        this.definition.addPlayer(this.state, { id: botId, displayName: "컴퓨터" });
       }
     }
 

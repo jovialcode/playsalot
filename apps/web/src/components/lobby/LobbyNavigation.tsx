@@ -16,13 +16,19 @@ export function LobbyNavigation({ activeTab, onTabChange }: LobbyNavigationProps
   return (
     <nav className="flex flex-shrink-0 justify-around border-t border-[var(--mist)] bg-[rgba(247,242,232,0.9)] p-[8px_12px_calc(10px+env(safe-area-inset-bottom,0px))] backdrop-blur-[12px]">
       {tabs.map((t) => (
-        <button 
-          key={t.id} 
-          onClick={() => onTabChange(t.id as Tab)} 
-          className="flex cursor-pointer flex-col items-center gap-[3px] border-none bg-transparent p-[6px_10px] font-[var(--font-body)]"
+        <button
+          key={t.id}
+          onClick={() => onTabChange(t.id as Tab)}
+          className="flex cursor-pointer flex-col items-center gap-[3px] border-none bg-transparent p-[6px_10px] font-[var(--font-body)] transition-transform duration-150 active:scale-[.88]"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={activeTab === t.id ? "var(--sage)" : "var(--ink-mute)"} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d={t.d}/></svg>
-          <span className="text-[11px]" style={{ color: activeTab === t.id ? "var(--sage)" : "var(--ink-mute)", fontWeight: activeTab === t.id ? 600 : 400 }}>{t.label}</span>
+          <svg
+            key={activeTab === t.id ? `${t.id}-active` : `${t.id}-idle`}
+            width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke={activeTab === t.id ? "var(--sage)" : "var(--ink-mute)"}
+            strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transition: "stroke 150ms var(--ease)", animation: activeTab === t.id ? "tabPop 320ms var(--ease)" : "none" }}
+          ><path d={t.d}/></svg>
+          <span className="text-[11px] transition-colors duration-150" style={{ color: activeTab === t.id ? "var(--sage)" : "var(--ink-mute)", fontWeight: activeTab === t.id ? 600 : 400 }}>{t.label}</span>
         </button>
       ))}
     </nav>
