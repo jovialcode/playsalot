@@ -1,20 +1,54 @@
 import type { DesignGame } from "@/types/game";
-import { useMemo } from "react";
-import { useDragScroll } from "@/hooks/useDragScroll";
+import { useEffect, useMemo, useState } from "react";
+import { GameCard } from "./GameCard";
 
 interface HomeViewProps {
   games: DesignGame[];
   onGameSelect: (gameId: string) => void;
   onQuickMatch: (gameId: string) => void;
-  onViewAllGames: () => void;
+  onViewRanking: () => void;
 }
 
-export function HomeView({ games, onGameSelect, onQuickMatch, onViewAllGames }: HomeViewProps) {
+// Mock weekly leaderboard top 3 (mirrors RankingView's data) for the home mini-module.
+const TOP_RANKS = [
+  { name: "도윤", score: 9840 },
+  { name: "서연", score: 9512 },
+  { name: "하은", score: 9188 },
+];
+
+const TICKER_ITEMS = [
+  "서연님이 할리갈리에서 승리했어요",
+  "민수님이 오목 대국을 시작했어요",
+  "도윤님이 우노에서 5연승 중이에요",
+  "지호님이 만칼라에 입장했어요",
+  "하은님이 배틀십에서 승리했어요",
+];
+
+export function HomeView({ games, onGameSelect, onQuickMatch, onViewRanking }: HomeViewProps) {
   const liveTotal = useMemo(() =>
     games.reduce((sum, g) => sum + g.activeNow, 0).toLocaleString("ko-KR"),
   [games]);
-  const popularScroll = useDragScroll<HTMLDivElement>();
-  const newScroll = useDragScroll<HTMLDivElement>();
+
+  // Featured spotlight rotates through the busiest playable games.
+  const featuredPool = useMemo(() => {
+    const playable = games.filter((g) => g.isPlayable);
+    const pool = (playable.length > 0 ? playable : games).slice();
+    return pool.sort((a, b) => b.activeNow - a.activeNow).slice(0, 5);
+  }, [games]);
+
+  const trending = useMemo(
+    () => featuredPool.find((g) => g.isNew) ?? featuredPool[1] ?? featuredPool[0],
+    [featuredPool],
+  );
+
+  const [featuredIdx, setFeaturedIdx] = useState(0);
+  useEffect(() => {
+    if (featuredPool.length <= 1) return;
+    const id = setInterval(() => setFeaturedIdx((i) => (i + 1) % featuredPool.length), 4200);
+    return () => clearInterval(id);
+  }, [featuredPool.length]);
+
+  const featured = featuredPool[featuredIdx % Math.max(featuredPool.length, 1)] ?? featuredPool[0];
 
   return (
     <div className="flex flex-col">
@@ -24,112 +58,139 @@ export function HomeView({ games, onGameSelect, onQuickMatch, onViewAllGames }: 
             <div className="text-[13px] font-medium text-[var(--ink-mute)]">보드게임 라운지</div>
             <div className="text-[32px] font-bold tracking-[-0.03em] text-[var(--ink)] font-[var(--font-display)]">오늘은 어떤 게임 할까요?</div>
           </div>
-          <button onClick={onViewAllGames} className="inline-flex h-[48px] w-[48px] flex-shrink-0 items-center justify-center rounded-full border border-[var(--mist)] bg-[var(--paper)] text-[var(--ink-soft)] cursor-pointer shadow-sm transition-colors hover:bg-[var(--cream-deep)]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          </button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-[26px] p-[0_0_28px]">
-        <div className="px-[20px]">
-          <div className="rounded-[24px] border border-[var(--sage-deep)] bg-[var(--sage)] p-[28px_24px]">
-            <div className="text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--sage-soft)]">지금 접속 현황</div>
-            <div className="my-[20px] mb-[12px] flex items-baseline gap-[10px]">
-              <span className="text-[42px] font-medium tracking-[-0.02em] text-[var(--cream)] font-[var(--font-display)]">{liveTotal}</span>
-              <span className="text-[15px] text-[var(--sage-tint)]">명이 지금 플레이 중</span>
-              <span className="mb-[6px] h-[8px] w-[8px] rounded-full bg-[var(--coral)]" />
+      <div className="flex flex-col gap-[18px] p-[0_0_28px]">
+        {/* Featured spotlight — large, auto-rotating recommended game. */}
+        {featured && (
+          <div className="px-[20px]">
+            <div
+              onClick={() => onGameSelect(featured.id)}
+              className="relative min-h-[208px] cursor-pointer overflow-hidden rounded-[24px] border border-black/5 p-[24px] shadow-sm transition-transform active:scale-[0.99]"
+              style={{ background: featured.tint }}
+            >
+              {/* decorative floating shapes */}
+              <span aria-hidden className="pointer-events-none absolute -right-[30px] -top-[30px] h-[140px] w-[140px] rounded-full opacity-30 animate-[floatSlow_7s_ease-in-out_infinite]" style={{ background: featured.tintDeep }} />
+              <span aria-hidden className="pointer-events-none absolute -bottom-[40px] left-[30%] h-[90px] w-[90px] rounded-full opacity-20 animate-[floatSlow_9s_ease-in-out_infinite]" style={{ background: featured.tintDeep }} />
+
+              <div key={featured.id} className="relative z-10 flex flex-col animate-[viewFadeIn_360ms_var(--ease)]">
+                <div className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: featured.tintDeep }}>🎲 오늘의 추천</div>
+                <div className="mt-[10px] text-[30px] font-bold leading-tight tracking-[-0.02em] text-[var(--ink)] font-[var(--font-display)]">{featured.name}</div>
+                <div className="mt-[6px] line-clamp-2 max-w-[86%] text-[14px] leading-[1.45] text-[var(--ink-soft)]">{featured.desc}</div>
+                <div className="mt-[12px] flex items-center gap-[6px] text-[13px] font-medium text-[var(--ink-soft)]">
+                  <span className="dot-live h-[7px] w-[7px] rounded-full bg-[var(--coral)]" />
+                  {featured.activeNow.toLocaleString()}명 플레이 중
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); (featured.isPlayable ? onQuickMatch : onGameSelect)(featured.id); }}
+                  className="group mt-[18px] inline-flex items-center gap-[8px] self-start rounded-[12px] px-[22px] py-[12px] text-[15px] font-semibold text-[var(--cream)] transition-transform duration-150 active:scale-[.95]"
+                  style={{ background: featured.tintDeep }}
+                >
+                  ▶ 지금 하기
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-[3px]"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+
+              {featuredPool.length > 1 && (
+                <div className="absolute bottom-[18px] right-[22px] z-10 flex gap-[6px]">
+                  {featuredPool.map((g, i) => (
+                    <button
+                      key={g.id}
+                      onClick={(e) => { e.stopPropagation(); setFeaturedIdx(i); }}
+                      aria-label={`추천 ${i + 1}`}
+                      className="h-[7px] rounded-full transition-all duration-300"
+                      style={{ width: i === featuredIdx ? 18 : 7, background: i === featuredIdx ? featured.tintDeep : "rgba(0,0,0,0.18)" }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="m-0 mb-[24px] text-[15px] leading-[1.5] text-[var(--sage-tint)] opacity-90">랜덤 상대와 바로 대전하거나, 원하는 게임을 골라보세요.</div>
-            <button onClick={() => onQuickMatch("omok")} className="group inline-flex items-center gap-[10px] rounded-[12px] border-none bg-[var(--paper)] p-[12px_22px] text-[15px] font-semibold text-[var(--sage)] cursor-pointer font-[var(--font-body)] transition-transform duration-150 active:scale-[.95]">
-              빠른 매칭 시작
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:translate-x-[3px]"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-            </button>
           </div>
-        </div>
+        )}
 
+        {/* Live ticker strip — connection count + flowing activity feed. */}
         <div className="px-[20px]">
-          <div className="flex items-center gap-[12px] rounded-[16px] border border-[var(--mist)] bg-[var(--paper)] p-[16px_20px] text-[15px] text-[var(--ink-soft)] shadow-sm">
-            <span className="h-[6px] w-[6px] rounded-full bg-[var(--ink-faint)]" />
-            <span className="flex-1">서연님이 할리갈리에서 승리했어요</span>
+          <div className="flex items-center gap-[10px] overflow-hidden rounded-full border border-[var(--mist)] bg-[var(--paper)] px-[16px] py-[10px] shadow-sm">
+            <span className="dot-live h-[6px] w-[6px] flex-shrink-0 rounded-full bg-[var(--coral)]" />
+            <span className="flex-shrink-0 text-[13px] font-bold text-[var(--ink)]">{liveTotal}명 접속</span>
+            <span className="h-[12px] w-px flex-shrink-0 bg-[var(--mist)]" />
+            <div className="relative flex-1 overflow-hidden">
+              <div className="flex w-max gap-[32px] whitespace-nowrap text-[13px] text-[var(--ink-soft)] animate-[ticker_20s_linear_infinite]">
+                {[...TICKER_ITEMS, ...TICKER_ITEMS].map((t, i) => (
+                  <span key={i} className="flex items-center gap-[6px]">
+                    <span className="text-[var(--ink-faint)]">▸</span>{t}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div>
-          <div className="mb-[12px] flex items-baseline justify-between px-[22px]">
-            <h3 className="m-0 text-[22px] font-semibold tracking-[-0.02em] text-[var(--ink)]">인기 보드게임</h3>
-            <button onClick={onViewAllGames} className="flex items-center gap-[4px] cursor-pointer border-none bg-none text-[14px] font-medium text-[var(--ink-soft)] font-[var(--font-body)]">
-              전체보기
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-            </button>
-          </div>
-          <div
-            ref={popularScroll.ref}
-            onPointerDown={popularScroll.onPointerDown}
-            onPointerMove={popularScroll.onPointerMove}
-            onPointerUp={popularScroll.onPointerUp}
-            onPointerLeave={popularScroll.onPointerLeave}
-            onClickCapture={popularScroll.onClickCapture}
-            className="flex touch-pan-x gap-[14px] overflow-x-auto p-[4px_20px_12px] cursor-grab active:cursor-grabbing no-scrollbar"
+        {/* Two mini modules: weekly ranking + trending. */}
+        <div className="grid grid-cols-2 gap-[12px] px-[20px]">
+          <button
+            onClick={onViewRanking}
+            className="stagger-in flex flex-col gap-[10px] rounded-[20px] border border-[var(--mist)] bg-[var(--paper)] p-[16px] text-left shadow-sm transition-transform active:scale-[0.98]"
           >
-            {games.slice(0, 3).map((game, i) => (
-              <div key={game.id} onClick={() => onGameSelect(game.id)} style={{ animationDelay: `${i * 60}ms` }} className="stagger-in flex w-[164px] flex-shrink-0 cursor-pointer flex-col overflow-hidden rounded-[20px] border border-[var(--mist)] bg-[var(--paper)] shadow-sm transition-transform active:scale-[0.98]">
-                <div className="relative flex aspect-[4/3] w-full flex-col items-center justify-center p-[12px]" style={{ background: game.tint }}>
-                  <div className="absolute inset-0 m-[8px] rounded-[12px] border-2 border-dashed border-black/10" />
-                  <div className="z-10 flex flex-col items-center gap-[8px] text-center opacity-60">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                    <div className="px-2 text-[12px] font-medium leading-tight text-[var(--ink)]">
-                      {game.name} 이미지<br/>
-                      <span className="text-[10px] opacity-70 underline">or browse files</span>
-                    </div>
-                  </div>
-                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />
-                  <div className="absolute left-[10px] top-[10px] flex h-[24px] w-[24px] items-center justify-center rounded-full bg-[var(--coral)] text-[12px] font-bold text-white shadow-sm">{i + 1}</div>
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-bold text-[var(--ink)]">🏆 주간 랭킹</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </div>
+            <div className="flex flex-col gap-[7px]">
+              {TOP_RANKS.map((p, i) => (
+                <div key={p.name} className="flex items-center gap-[8px]">
+                  <span
+                    className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                    style={{
+                      background: i === 0 ? "var(--coral)" : i === 1 ? "var(--sage-tint)" : "var(--warn-tint)",
+                      color: i === 0 ? "var(--cream)" : i === 1 ? "var(--sage-deep)" : "#6E4A1A",
+                    }}
+                  >{i + 1}</span>
+                  <span className="flex-1 truncate text-[12px] font-medium text-[var(--ink)]">{p.name}</span>
+                  <span className="text-[11px] font-semibold text-[var(--ink-mute)] tabular-nums">{p.score.toLocaleString()}</span>
                 </div>
-                <div className="flex flex-col gap-[4px] p-[16px_16px_18px]">
-                  <div className="text-[16px] font-bold tracking-[-0.01em] text-[var(--ink)]">{game.name}</div>
-                  <div className="text-[13px] text-[var(--ink-mute)] font-medium">{game.activeNow.toLocaleString()}명 플레이 중</div>
+              ))}
+            </div>
+          </button>
+
+          {trending && (
+            <button
+              onClick={() => onGameSelect(trending.id)}
+              className="stagger-in relative flex flex-col justify-between gap-[8px] overflow-hidden rounded-[20px] border border-black/5 p-[16px] text-left shadow-sm transition-transform active:scale-[0.98]"
+              style={{ background: trending.tint }}
+            >
+              <span aria-hidden className="pointer-events-none absolute -right-[16px] -top-[16px] h-[70px] w-[70px] rounded-full opacity-25 animate-[floatSlow_8s_ease-in-out_infinite]" style={{ background: trending.tintDeep }} />
+              <span className="relative z-10 text-[13px] font-bold text-[var(--ink)]">🔥 급상승</span>
+              <div className="relative z-10">
+                <div className="text-[20px] font-bold leading-tight tracking-[-0.01em] text-[var(--ink)] font-[var(--font-display)]">{trending.name}</div>
+                <div className="mt-[4px] inline-flex items-center gap-[4px] rounded-full bg-[var(--paper)]/70 px-[8px] py-[2px] text-[11px] font-bold" style={{ color: trending.tintDeep }}>
+                  ▲ 32% 지금 뜨는 중
                 </div>
               </div>
-            ))}
-          </div>
+            </button>
+          )}
         </div>
 
+        {/* Bento game grid — mixed-size tiles break the uniform rhythm. */}
         <div>
-          <div className="mb-[12px] flex items-baseline justify-between px-[22px]">
-            <h3 className="m-0 text-[22px] font-semibold tracking-[-0.02em] text-[var(--ink)]">신규 게임</h3>
-            <button onClick={onViewAllGames} className="flex items-center gap-[4px] cursor-pointer border-none bg-none text-[14px] font-medium text-[var(--ink-soft)] font-[var(--font-body)]">
-              전체보기
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-            </button>
+          <div className="mb-[12px] px-[22px]">
+            <h3 className="m-0 text-[22px] font-semibold tracking-[-0.02em] text-[var(--ink)]">게임 둘러보기</h3>
           </div>
-          <div
-            ref={newScroll.ref}
-            onPointerDown={newScroll.onPointerDown}
-            onPointerMove={newScroll.onPointerMove}
-            onPointerUp={newScroll.onPointerUp}
-            onPointerLeave={newScroll.onPointerLeave}
-            onClickCapture={newScroll.onClickCapture}
-            className="flex touch-pan-x gap-[14px] overflow-x-auto p-[4px_20px_12px] cursor-grab active:cursor-grabbing no-scrollbar"
-          >
-            {games.filter(g => g.isNew).map((game, i) => (
-              <div key={game.id} onClick={() => onGameSelect(game.id)} style={{ animationDelay: `${i * 60}ms` }} className="stagger-in flex w-[164px] flex-shrink-0 cursor-pointer flex-col overflow-hidden rounded-[20px] border border-[var(--mist)] bg-[var(--paper)] shadow-sm transition-transform active:scale-[0.98]">
-                <div className="relative flex aspect-[4/3] w-full flex-col items-center justify-center p-[12px]" style={{ background: game.tint }}>
-                  <div className="absolute inset-0 m-[8px] rounded-[12px] border-2 border-dashed border-black/10" />
-                  <div className="z-10 flex flex-col items-center gap-[8px] text-center opacity-60">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                    <div className="px-2 text-[12px] font-medium leading-tight text-[var(--ink)]">
-                      {game.name} 이미지<br/>
-                      <span className="text-[10px] opacity-70 underline">or browse files</span>
-                    </div>
-                  </div>
-                  <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent" />
-                  <span className="absolute right-[10px] top-[10px] rounded-[6px] bg-[var(--coral-tint)] p-[3px_8px] text-[10px] font-bold text-[var(--coral-deep)] shadow-sm">신규</span>
-                </div>
-                <div className="flex flex-col gap-[4px] p-[16px_16px_18px]">
-                  <div className="text-[16px] font-bold tracking-[-0.01em] text-[var(--ink)]">{game.name}</div>
-                  <div className="text-[13px] text-[var(--ink-mute)] font-medium">{game.activeNow.toLocaleString()}명 플레이 중</div>
-                </div>
-              </div>
+          <div className="grid grid-flow-dense grid-cols-2 gap-[12px] px-[20px]">
+            {games.map((game, i) => (
+              <GameCard
+                key={game.id}
+                game={game}
+                onSelect={onGameSelect}
+                wide={i % 5 === 0}
+                style={{ animationDelay: `${Math.min(i, 8) * 45}ms` }}
+                badge={
+                  game.isNew ? (
+                    <span className="absolute right-[10px] top-[10px] rounded-[6px] bg-[var(--coral-tint)] p-[3px_8px] text-[10px] font-bold text-[var(--coral-deep)] shadow-sm">신규</span>
+                  ) : undefined
+                }
+              />
             ))}
           </div>
         </div>

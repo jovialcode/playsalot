@@ -47,6 +47,9 @@ importers:
       '@playsalot/game-burumable':
         specifier: workspace:*
         version: link:../../packages/games/burumable
+      '@playsalot/game-dots-and-boxes':
+        specifier: workspace:*
+        version: link:../../packages/games/dots-and-boxes
       '@playsalot/game-engine-core':
         specifier: workspace:*
         version: link:../../packages/game-engine-core
@@ -59,6 +62,9 @@ importers:
       '@playsalot/game-halligalli':
         specifier: workspace:*
         version: link:../../packages/games/halligalli
+      '@playsalot/game-mancala':
+        specifier: workspace:*
+        version: link:../../packages/games/mancala
       '@playsalot/game-omok':
         specifier: workspace:*
         version: link:../../packages/games/omok
@@ -190,6 +196,19 @@ importers:
         specifier: ^5.9.2
         version: 5.9.3
 
+  packages/games/dots-and-boxes:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
   packages/games/gem-merchants:
     dependencies:
       '@colyseus/schema':
@@ -217,6 +236,19 @@ importers:
         version: 5.9.3
 
   packages/games/halligalli:
+    dependencies:
+      '@colyseus/schema':
+        specifier: ^3.0.0
+        version: 3.0.76
+      '@playsalot/game-engine-core':
+        specifier: workspace:*
+        version: link:../../game-engine-core
+    devDependencies:
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.3
+
+  packages/games/mancala:
     dependencies:
       '@colyseus/schema':
         specifier: ^3.0.0

@@ -26,6 +26,8 @@
     "@playsalot/game-gostop": "workspace:*",
     "@playsalot/game-president": "workspace:*",
     "@playsalot/game-gem-merchants": "workspace:*",
+    "@playsalot/game-mancala": "workspace:*",
+    "@playsalot/game-dots-and-boxes": "workspace:*",
     "@playsalot/shared-types": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.21.2",

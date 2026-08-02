@@ -9,6 +9,8 @@ import { BattleshipBoard } from "@/components/game/BattleshipBoard";
 import { GostopBoard } from "@/components/game/GostopBoard";
 import { PresidentBoard } from "@/components/game/PresidentBoard";
 import { GemMerchantsBoard } from "@/components/game/GemMerchantsBoard";
+import { MancalaBoard } from "@/components/game/MancalaBoard";
+import { DotsBoard } from "@/components/game/DotsBoard";
 
 export interface GameScreenProps {
   room: Room;
@@ -27,6 +29,8 @@ const gameScreens: ReadonlyMap<string, GameScreen> = new Map([
   ["gostop", GostopBoard],
   ["president", PresidentBoard],
   ["gem-merchants", GemMerchantsBoard],
+  ["mancala", MancalaBoard],
+  ["dots", DotsBoard],
 ]);
 
 export function getGameScreen(gameId: string): GameScreen | undefined {

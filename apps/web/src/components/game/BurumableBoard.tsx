@@ -120,6 +120,31 @@ function CenterLogo({ diceCount, dicePulse }: { diceCount: number; dicePulse: nu
   );
 }
 
+const DICE_PIP_POSITIONS: Record<number, number[]> = {
+  1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8],
+};
+
+function CenterDice({ visible, rolling, value, pulse }: { visible: boolean; rolling: boolean; value: number; pulse: number }) {
+  if (!visible) return null;
+  const pips = DICE_PIP_POSITIONS[value] ?? DICE_PIP_POSITIONS[1];
+  return (
+    <div className="pointer-events-none absolute inset-[18%] z-20 flex flex-col items-center justify-center rounded-2xl bg-[rgba(92,53,31,0.34)] backdrop-blur-[1px]">
+      <div
+        key={rolling ? "rolling" : `result-${pulse}`}
+        className="grid h-20 w-20 grid-cols-3 grid-rows-3 rounded-2xl border-[3px] border-amber-100 bg-[#fff8e7] p-3 shadow-2xl max-[380px]:h-16 max-[380px]:w-16 max-[380px]:rounded-xl max-[380px]:p-2"
+        style={{ animation: rolling ? "diceTumble 500ms ease-in-out infinite" : "diceReveal 360ms ease-out" }}
+      >
+        {Array.from({ length: 9 }, (_, index) => (
+          <span key={index} className="flex items-center justify-center">
+            {pips.includes(index) && <i className="h-3 w-3 rounded-full bg-[#704123] shadow-sm max-[380px]:h-2 max-[380px]:w-2" />}
+          </span>
+        ))}
+      </div>
+      <b className="mt-3 text-sm text-white drop-shadow">{rolling ? "주사위 굴리는 중…" : `${value} 나왔어요!`}</b>
+    </div>
+  );
+}
+
 function BoardTile({
   index,
   myIndex,
@@ -372,7 +397,7 @@ function ActionBar({
   canBuy: boolean;
   canBuild: boolean;
   rollShakePulse: number;
-  onAction: (action: "roll" | "buy" | "pass" | "build") => void;
+  onAction: (action: "roll" | "buy" | "pass" | "build" | "pay-rent" | "negotiate-rent") => void;
 }) {
   return (
     <div className="grid grid-cols-3 gap-2 max-[380px]:gap-1.5">
@@ -385,6 +410,22 @@ function ActionBar({
         >
           🎲 주사위 굴리기
         </button>
+      )}
+      {myTurn && view.phase === "visit" && (
+        <>
+          <button
+            onClick={() => onAction("pay-rent")}
+            className="min-h-14 rounded-xl bg-rose-600 px-2 py-3 text-sm font-bold text-white max-[380px]:text-xs"
+          >
+            💳 정중히 지불
+          </button>
+          <button
+            onClick={() => onAction("negotiate-rent")}
+            className="col-span-2 min-h-14 rounded-xl bg-violet-600 px-2 py-3 text-sm font-bold text-white max-[380px]:text-xs"
+          >
+            🎉 환대 협상 <span className="text-xs font-medium opacity-90">성공 55% · 40% 할인 / 실패 시 20% 추가</span>
+          </button>
+        </>
       )}
       {canBuy && (
         <button
@@ -433,6 +474,9 @@ export function BurumableBoard({ room, guestId }: { room: Room; guestId: string 
   const [hopPulses, setHopPulses] = useState<number[]>([]);
   const [rollShakePulse, setRollShakePulse] = useState(0);
   const [dicePopPulse, setDicePopPulse] = useState(0);
+  const [isRolling, setIsRolling] = useState(false);
+  const [showDiceResult, setShowDiceResult] = useState(false);
+  const [rollingFace, setRollingFace] = useState(1);
   const [turnPulse, setTurnPulse] = useState(0);
   const [myCashFx, setMyCashFx] = useState<CashFx>(null);
   const [oppCashFx, setOppCashFx] = useState<CashFx>(null);
@@ -474,6 +518,9 @@ export function BurumableBoard({ room, guestId }: { room: Room; guestId: string 
   // position instead of snapping, so the board no longer teleports pieces.
   const prevPositionsRef = useRef<number[]>([]);
   const stepTimersRef = useRef<number[]>([]);
+  const diceRollIntervalRef = useRef<number | null>(null);
+  const diceRollTimerRef = useRef<number | null>(null);
+  const diceResultTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (view.positions.length === 0) return;
@@ -512,6 +559,11 @@ export function BurumableBoard({ room, guestId }: { room: Room; guestId: string 
   }, [view.positions]);
 
   useEffect(() => () => { stepTimersRef.current.forEach(clearTimeout); }, []);
+  useEffect(() => () => {
+    if (diceRollIntervalRef.current !== null) window.clearInterval(diceRollIntervalRef.current);
+    if (diceRollTimerRef.current !== null) window.clearTimeout(diceRollTimerRef.current);
+    if (diceResultTimerRef.current !== null) window.clearTimeout(diceResultTimerRef.current);
+  }, []);
 
   // ── Game feel: detect purchase/build/cash/turn/win transitions and play
   // the matching sound (the tile-level visuals self-trigger via key changes).
@@ -557,9 +609,8 @@ export function BurumableBoard({ room, guestId }: { room: Room; guestId: string 
     prevGameRef.current = { owners: [...view.owners], levels: [...view.levels], cash: [...view.cash], myTurn, winnerId: view.winnerId };
   }, [view.owners, view.levels, view.cash, myTurn, view.winnerId, myIndex, opponentIndex, guestId]);
 
-  // Dice pips only re-render with a fresh value when the server actually
-  // sets lastRoll (property landings); other tiles resolve and reset it
-  // before we ever observe it, so this is a best-effort visual pop.
+  // The server retains the most recent roll through landing resolution, so
+  // this also covers event tiles that immediately end the turn.
   const prevLastRollRef = useRef(0);
   useEffect(() => {
     if (view.lastRoll && view.lastRoll !== prevLastRollRef.current) {
@@ -568,10 +619,23 @@ export function BurumableBoard({ room, guestId }: { room: Room; guestId: string 
     prevLastRollRef.current = view.lastRoll;
   }, [view.lastRoll]);
 
-  const send = (action: "roll" | "buy" | "pass" | "build") => {
+  const send = (action: "roll" | "buy" | "pass" | "build" | "pay-rent" | "negotiate-rent") => {
     setError("");
     if (action === "roll") {
       setRollShakePulse((n) => n + 1);
+      setIsRolling(true);
+      setShowDiceResult(true);
+      if (diceRollIntervalRef.current !== null) window.clearInterval(diceRollIntervalRef.current);
+      if (diceRollTimerRef.current !== null) window.clearTimeout(diceRollTimerRef.current);
+      if (diceResultTimerRef.current !== null) window.clearTimeout(diceResultTimerRef.current);
+      diceRollIntervalRef.current = window.setInterval(() => setRollingFace(Math.floor(Math.random() * 6) + 1), 90);
+      diceRollTimerRef.current = window.setTimeout(() => {
+        if (diceRollIntervalRef.current !== null) window.clearInterval(diceRollIntervalRef.current);
+        diceRollIntervalRef.current = null;
+        setIsRolling(false);
+        setDicePopPulse((n) => n + 1);
+        diceResultTimerRef.current = window.setTimeout(() => setShowDiceResult(false), 700);
+      }, 850);
       playDiceRollSound();
     }
     room.send("move", { action });
@@ -593,6 +657,7 @@ export function BurumableBoard({ room, guestId }: { room: Room; guestId: string 
         style={{ backgroundImage: "radial-gradient(#fff1ba 1px, transparent 1px)", backgroundSize: "12px 12px" }}
       >
         <CenterLogo diceCount={diceCount} dicePulse={dicePopPulse} />
+        <CenterDice visible={showDiceResult} rolling={isRolling} value={isRolling ? rollingFace : diceCount} pulse={dicePopPulse} />
         {SPACES.map((_, index) => (
           <BoardTile
             key={index}
