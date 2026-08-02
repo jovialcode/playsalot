@@ -7,12 +7,15 @@ import { Tab } from "@/types/lobby";
 
 // Components
 import { HomeView } from "@/components/lobby/HomeView";
-import { GamesView } from "@/components/lobby/GamesView";
+import { FriendsView } from "@/components/lobby/FriendsView";
+import { MissionsView } from "@/components/lobby/MissionsView";
 import { RankingView } from "@/components/lobby/RankingView";
 import { MyPageView } from "@/components/lobby/MyPageView";
 import { GameDetailView } from "@/components/lobby/GameDetailView";
 import { LobbyNavigation } from "@/components/lobby/LobbyNavigation";
 import { MatchingOverlay } from "@/components/lobby/MatchingOverlay";
+import { WaitingRoomOverlay } from "@/components/lobby/WaitingRoomOverlay";
+import { PublicRoomsOverlay } from "@/components/lobby/PublicRoomsOverlay";
 
 // Hooks
 import { useSession } from "@/hooks/useSession";
@@ -29,11 +32,22 @@ export default function LobbyPage() {
     activeGameId,
     matchingState,
     matchOpponent,
+    waitingRoom,
+    publicRooms,
     startQuickMatch,
     handlePlay,
     confirmMatchStart,
     cancelMatch,
-    leaveRoom
+    leaveRoom,
+    createRoom,
+    joinRoomByCode,
+    startWaitingRoomGame,
+    leaveWaitingRoom,
+    openPublicRooms,
+    refreshPublicRooms,
+    closePublicRooms,
+    createPublicRoom,
+    joinPublicRoom
   } = useMatch(session, games, showToast);
 
   // UI States
@@ -49,8 +63,8 @@ export default function LobbyPage() {
   if (room && session) {
     const gameInfo = lobbyGames.find(g => g.id === activeGameId);
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-[var(--cream-deep)] sm:p-4 font-[var(--font-body)]">
-        <div className="relative flex h-dvh w-full max-w-[440px] flex-col overflow-hidden bg-[var(--cream)] sm:h-full sm:rounded-[24px] sm:border sm:border-[var(--mist)] sm:shadow-[var(--shadow-2)]">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-[var(--cream)] min-[540px]:bg-[var(--cream-deep)] min-[540px]:p-4 font-[var(--font-body)]">
+        <div className="relative flex h-dvh w-full max-w-[500px] flex-col overflow-hidden bg-[var(--cream)] min-[540px]:h-full min-[540px]:rounded-[24px] min-[540px]:border min-[540px]:border-[var(--mist)] min-[540px]:shadow-[var(--shadow-2)]">
             <div className="flex items-center gap-[10px] border-b border-[var(--mist)] bg-[rgba(247,242,232,0.9)] p-[calc(14px+env(safe-area-inset-top,0px))_16px_14px] backdrop-blur-[12px]">
                 <button
                     onClick={leaveRoom}
@@ -73,8 +87,8 @@ export default function LobbyPage() {
   }
 
   return (
-    <div className="flex min-h-dvh justify-center bg-[var(--cream-deep)] sm:p-[24px] font-[var(--font-body)]">
-      <div className="relative flex h-dvh w-full max-w-[440px] flex-col overflow-hidden bg-[var(--cream)] sm:h-auto sm:min-h-[calc(100dvh-48px)] sm:rounded-[24px] sm:border sm:border-[var(--mist)] sm:shadow-[var(--shadow-2)]">
+    <div className="flex min-h-dvh justify-center bg-[var(--cream)] min-[540px]:bg-[var(--cream-deep)] min-[540px]:p-[24px] font-[var(--font-body)]">
+      <div className="relative flex h-dvh w-full max-w-[500px] flex-col overflow-hidden bg-[var(--cream)] min-[540px]:h-auto min-[540px]:min-h-[calc(100dvh-48px)] min-[540px]:rounded-[24px] min-[540px]:border min-[540px]:border-[var(--mist)] min-[540px]:shadow-[var(--shadow-2)]">
         
         {/* View Layer */}
         <div className="flex flex-1 flex-col overflow-y-auto">
@@ -82,8 +96,12 @@ export default function LobbyPage() {
             <GameDetailView 
               game={selectedGame}
               onClose={() => setSelectedGameId(null)}
-              onQuickMatch={(id) => { setSelectedGameId(null); startQuickMatch(id); }}
-              onPlayWithBot={(id) => { setSelectedGameId(null); handlePlay(id, true); }}
+              onQuickMatch={startQuickMatch}
+              onPlayWithBot={(id) => { handlePlay(id, true); }}
+              onCreateRoom={createRoom}
+              onInviteFriends={(id) => { createRoom(id, "private"); }}
+              onJoinRoomByCode={joinRoomByCode}
+              onOpenPublicRooms={openPublicRooms}
               onShowToast={showToast}
             />
           ) : (
@@ -93,11 +111,14 @@ export default function LobbyPage() {
                   games={lobbyGames}
                   onGameSelect={setSelectedGameId}
                   onQuickMatch={startQuickMatch}
-                  onViewAllGames={() => setActiveTab("games")}
+                  onViewRanking={() => setActiveTab("ranking")}
                 />
               )}
-              {activeTab === "games" && (
-                <GamesView games={lobbyGames} onGameSelect={setSelectedGameId} />
+              {activeTab === "friends" && (
+                <FriendsView onShowToast={showToast} />
+              )}
+              {activeTab === "missions" && (
+                <MissionsView onShowToast={showToast} />
               )}
               {activeTab === "ranking" && (
                 <RankingView />
@@ -115,11 +136,27 @@ export default function LobbyPage() {
         )}
 
         {/* Overlays */}
-        <MatchingOverlay 
-          state={matchingState} 
+        <MatchingOverlay
+          state={matchingState}
           opponent={matchOpponent}
           onCancel={cancelMatch}
           onConfirm={confirmMatchStart}
+        />
+
+        <WaitingRoomOverlay
+          waitingRoom={waitingRoom}
+          guestId={session?.guestId ?? ""}
+          onStart={startWaitingRoomGame}
+          onLeave={leaveWaitingRoom}
+        />
+
+        <PublicRoomsOverlay
+          browser={publicRooms}
+          gameName={lobbyGames.find((g) => g.id === publicRooms?.gameId)?.name ?? ""}
+          onJoin={joinPublicRoom}
+          onCreate={createPublicRoom}
+          onRefresh={refreshPublicRooms}
+          onClose={closePublicRooms}
         />
 
         {toast && (

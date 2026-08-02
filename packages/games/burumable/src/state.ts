@@ -40,4 +40,4 @@ defineTypes(BurumableState, {
   lastRoll: "number", message: "string", winnerId: "string",
 });
 
-export type BurumableMove = { action: "roll" | "buy" | "pass" | "build" };
+export type BurumableMove = { action: "roll" | "buy" | "pass" | "build" | "pay-rent" | "negotiate-rent" };

@@ -6,7 +6,7 @@ import {
   getReconnectionToken,
   saveReconnectionToken,
 } from "@/lib/reconnect";
-import type { GameCatalogEntry, GuestSession } from "@playsalot/shared-types";
+import type { GameCatalogEntry, GuestSession, PublicRoomSummary } from "@playsalot/shared-types";
 import type { Room } from "colyseus.js";
 
 export interface ReconnectedGame {
@@ -27,10 +27,63 @@ export class GameService {
       guestId: session.guestId,
       displayName: session.displayName,
       token: session.token,
-      vsBot,
+      mode: vsBot ? "bot" : "quick",
     });
     saveReconnectionToken(room.reconnectionToken, gameId);
     return room;
+  }
+
+  /**
+   * Creates a fresh waiting room that waits for the host to send "start-game" —
+   * see BoardGameRoom's isWaitingRoom branch. `mode` decides visibility: "private"
+   * is invite-code only (hidden), "public" is listed by GET /api/rooms. The
+   * reconnection token is intentionally NOT saved here (unlike joinGame/joinById);
+   * it's saved once the game actually starts, since reconnecting into a still-waiting
+   * room isn't something the lobby UI (page.tsx) knows how to render.
+   */
+  static async createPrivateRoom(gameId: string, session: GuestSession): Promise<Room> {
+    return GameService.createWaitingRoom(gameId, session, "private");
+  }
+
+  static async createPublicRoom(gameId: string, session: GuestSession): Promise<Room> {
+    return GameService.createWaitingRoom(gameId, session, "public");
+  }
+
+  private static async createWaitingRoom(
+    gameId: string,
+    session: GuestSession,
+    mode: "private" | "public",
+  ): Promise<Room> {
+    return colyseusClient.create("board-game", {
+      gameId,
+      guestId: session.guestId,
+      displayName: session.displayName,
+      token: session.token,
+      mode,
+    });
+  }
+
+  /**
+   * Joins an existing waiting room by its room id — either a private invite code
+   * shared by the host, or a public room id picked from the /api/rooms listing.
+   * gameId is left empty on purpose: the client learns which game it is from the
+   * server's roster/game-started messages (see useMatch), so the same call works
+   * regardless of which game detail page it was launched from.
+   */
+  static async joinRoomById(roomId: string, session: GuestSession): Promise<Room> {
+    return colyseusClient.joinById(roomId, {
+      gameId: "",
+      guestId: session.guestId,
+      displayName: session.displayName,
+      token: session.token,
+    });
+  }
+
+  /** Fetches the list of open public waiting rooms for a game (GET /api/rooms). */
+  static async fetchPublicRooms(gameId: string): Promise<PublicRoomSummary[]> {
+    const res = await fetch(`${API_URL}/api/rooms?gameId=${encodeURIComponent(gameId)}`);
+    if (!res.ok) throw new Error("Failed to fetch rooms");
+    return res.json();
   }
 
   static async tryReconnect(): Promise<ReconnectedGame | null> {

@@ -8,6 +8,8 @@ import { battleshipDefinition } from "@playsalot/game-battleship";
 import { gostopDefinition } from "@playsalot/game-gostop";
 import { presidentDefinition } from "@playsalot/game-president";
 import { gemMerchantsDefinition } from "@playsalot/game-gem-merchants";
+import { mancalaDefinition } from "@playsalot/game-mancala";
+import { dotsDefinition } from "@playsalot/game-dots-and-boxes";
 
 /**
  * Single place that wires concrete game packages into the registry.
@@ -24,4 +26,6 @@ export function registerGames(): void {
   gameRegistry.register(gostopDefinition);
   gameRegistry.register(presidentDefinition);
   gameRegistry.register(gemMerchantsDefinition);
+  gameRegistry.register(mancalaDefinition);
+  gameRegistry.register(dotsDefinition);
 }

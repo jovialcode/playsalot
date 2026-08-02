@@ -1,5 +1,5 @@
 import { gameRegistry, type GameDefinition, type PlayerId } from "@playsalot/game-engine-core";
-import type { JoinRoomOptions } from "@playsalot/shared-types";
+import type { JoinRoomOptions, RoomMode } from "@playsalot/shared-types";
 import { Client, Room, ServerError } from "@colyseus/core";
 import type { Schema } from "@colyseus/schema";
 import jwt from "jsonwebtoken";
@@ -28,18 +28,41 @@ const BOT_MOVE_DELAY_MS = 500;
 export class BoardGameRoom extends Room<Schema> {
   private definition!: GameDefinition<Schema, unknown>;
   private readonly playerIdByClient = new Map<string, PlayerId>();
+  private readonly displayNameByPlayerId = new Map<string, string>();
   private readonly joinedPlayerIds: PlayerId[] = [];
   private readonly botPlayerIds: PlayerId[] = [];
   private isVsBot = false;
 
-  onCreate(options: { gameId: string; vsBot?: boolean }): void {
-    this.definition = gameRegistry.require(options.gameId);
-    this.isVsBot = !!options.vsBot;
+  // Waiting-room modes ("private" invite-code / "public" browsable): created via
+  // `client.create(..., { mode })` instead of matchmaking. Joining doesn't auto-start
+  // the game — clients sit in a waiting room (roster broadcasts) until the first joiner
+  // ("host") sends "start-game". A public room is identical except it stays listed
+  // (GET /api/rooms) instead of being hidden with setPrivate(true).
+  private isWaitingRoom = false;
+  private isPublicRoom = false;
+  private hostPlayerId: PlayerId | null = null;
+  private started = false;
 
-    // In vs-bot mode we only need enough real clients to fill the
-    // non-bot seats; the rest get filled with bot player ids in onJoin.
-    const requiredHumans = this.isVsBot ? this.definition.maxPlayers - 1 : this.definition.maxPlayers;
-    this.maxClients = Math.max(requiredHumans, 1);
+  onCreate(options: { gameId: string; mode?: RoomMode }): void {
+    this.definition = gameRegistry.require(options.gameId);
+    const mode: RoomMode = options.mode ?? "quick";
+    this.isVsBot = mode === "bot";
+    this.isWaitingRoom = mode === "public" || mode === "private";
+    this.isPublicRoom = mode === "public";
+
+    if (this.isWaitingRoom) {
+      // Private rooms are hidden from matchmaking/listings (only reachable via
+      // joinById). Public rooms stay listed so the lobby can browse them; we seed
+      // their listing metadata here so it carries the game id even before anyone joins.
+      if (!this.isPublicRoom) this.setPrivate(true);
+      else void this.setMetadata({ gameId: this.definition.id, hostName: "" });
+      this.maxClients = this.definition.maxPlayers;
+    } else {
+      // In vs-bot mode we only need enough real clients to fill the
+      // non-bot seats; the rest get filled with bot player ids in onJoin.
+      const requiredHumans = this.isVsBot ? this.definition.maxPlayers - 1 : this.definition.maxPlayers;
+      this.maxClients = Math.max(requiredHumans, 1);
+    }
 
     // Assigned once, here, before any client joins — see the note on
     // GameDefinition.createInitialState for why setting `this.state` later
@@ -48,10 +71,13 @@ export class BoardGameRoom extends Room<Schema> {
     this.state = this.definition.createInitialState();
 
     this.onMessage("move", (client, move: unknown) => {
+      if (this.isWaitingRoom && !this.started) return;
       const playerId = this.playerIdByClient.get(client.sessionId);
       if (!playerId) return;
       this.applyMoveAndAdvance(playerId, move, client);
     });
+
+    this.onMessage("start-game", (client) => this.handleStartGame(client));
   }
 
   /** Verifies the client's claimed guestId against its signed session token before allowing a join. */
@@ -69,8 +95,23 @@ export class BoardGameRoom extends Room<Schema> {
 
   onJoin(client: Client, _options: JoinRoomOptions, auth: AuthPayload): void {
     this.playerIdByClient.set(client.sessionId, auth.guestId);
+    this.displayNameByPlayerId.set(auth.guestId, auth.displayName);
     this.joinedPlayerIds.push(auth.guestId);
     this.definition.addPlayer(this.state, { id: auth.guestId, displayName: auth.displayName });
+
+    if (this.isWaitingRoom) {
+      if (!this.hostPlayerId) this.hostPlayerId = auth.guestId;
+      this.broadcastRoster();
+      // Keep the public listing's host name / player count in sync so the lobby
+      // room browser shows who's hosting and how full each room is.
+      if (this.isPublicRoom) {
+        void this.setMetadata({
+          gameId: this.definition.id,
+          hostName: this.displayNameByPlayerId.get(this.hostPlayerId) ?? "",
+        });
+      }
+      return;
+    }
 
     if (this.joinedPlayerIds.length !== this.maxClients) return;
 
@@ -123,6 +164,41 @@ export class BoardGameRoom extends Room<Schema> {
     }
 
     this.maybeTriggerBotMove();
+  }
+
+  /** Only the host may start, and only once the minimum player count for the game has joined. */
+  private handleStartGame(client: Client): void {
+    if (!this.isWaitingRoom || this.started) return;
+
+    const playerId = this.playerIdByClient.get(client.sessionId);
+    if (!playerId || playerId !== this.hostPlayerId) {
+      client.send("start-game-rejected", { error: "방장만 게임을 시작할 수 있습니다" });
+      return;
+    }
+    if (this.joinedPlayerIds.length < this.definition.minPlayers) {
+      client.send("start-game-rejected", { error: "최소 인원이 모이지 않았습니다" });
+      return;
+    }
+
+    this.started = true;
+    this.lock();
+    this.broadcastRoster();
+    this.broadcast("game-started", { gameId: this.definition.id });
+  }
+
+  private broadcastRoster(): void {
+    if (!this.isWaitingRoom) return;
+    this.broadcast("roster", {
+      gameId: this.definition.id,
+      players: this.joinedPlayerIds.map((id) => ({
+        id,
+        displayName: this.displayNameByPlayerId.get(id) ?? id,
+      })),
+      hostId: this.hostPlayerId,
+      minPlayers: this.definition.minPlayers,
+      maxPlayers: this.definition.maxPlayers,
+      started: this.started,
+    });
   }
 
   /** Checks whether it's a bot's turn and, if so, schedules its move after a short "thinking" delay. */
