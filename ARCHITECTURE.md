@@ -267,7 +267,7 @@ flowchart LR
     Browser -- ws :2567 --> GS[apps/game-server 1개]
 ```
 
-**1단계 배포** (`infra/docker-compose.yml`): `web`, `game-server`, `redis` 3개 컨테이너. game-server는 여전히 1개 인스턴스지만 Redis에 연결되어 있어서 — 코드 변경 없이 인스턴스만 늘리면 다음 단계로 바로 갈 수 있습니다.
+**1단계 배포** (`deploy/prod/docker-compose.yml`): `web`, `game-server`, `redis`, `postgres` 컨테이너. game-server는 Redis와 PostgreSQL에 연결되고, 친구 관계 같은 영속 데이터는 PostgreSQL에 저장됩니다. 로컬 개발용 Compose는 `deploy/dev/docker-compose.yml`에 별도로 둡니다.
 
 **확장 단계** (아직 미구현, Phase 3): game-server를 N개 레플리카로 늘리고, sticky session을 지원하는 프록시(nginx `ip_hash` 또는 `@colyseus/proxy`)를 앞단에 두고, Redis/Postgres를 매니지드 서비스로 교체합니다. 애플리케이션 코드는 7번 섹션에서 설명한 것처럼 이미 Redis 기반으로 짜여 있으므로, 이 단계에서 바뀌는 건 인프라 설정뿐입니다.
 

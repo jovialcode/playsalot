@@ -1,5 +1,5 @@
 import type { DesignGame } from "@/types/game";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GameCard } from "./GameCard";
 
 interface HomeViewProps {
@@ -42,6 +42,14 @@ export function HomeView({ games, onGameSelect, onQuickMatch, onViewRanking }: H
   );
 
   const [featuredIdx, setFeaturedIdx] = useState(0);
+  const swipeStartX = useRef<number | null>(null);
+  const didSwipe = useRef(false);
+
+  const moveFeatured = (direction: 1 | -1) => {
+    if (featuredPool.length <= 1) return;
+    setFeaturedIdx((index) => (index + direction + featuredPool.length) % featuredPool.length);
+  };
+
   useEffect(() => {
     if (featuredPool.length <= 1) return;
     const id = setInterval(() => setFeaturedIdx((i) => (i + 1) % featuredPool.length), 4200);
@@ -66,8 +74,29 @@ export function HomeView({ games, onGameSelect, onQuickMatch, onViewRanking }: H
         {featured && (
           <div className="px-[20px]">
             <div
-              onClick={() => onGameSelect(featured.id)}
-              className="relative min-h-[208px] cursor-pointer overflow-hidden rounded-[24px] border border-black/5 p-[24px] shadow-sm transition-transform active:scale-[0.99]"
+              onClick={() => {
+                if (didSwipe.current) {
+                  didSwipe.current = false;
+                  return;
+                }
+                onGameSelect(featured.id);
+              }}
+              onTouchStart={(event) => {
+                swipeStartX.current = event.touches[0]?.clientX ?? null;
+                didSwipe.current = false;
+              }}
+              onTouchEnd={(event) => {
+                const startX = swipeStartX.current;
+                const endX = event.changedTouches[0]?.clientX;
+                swipeStartX.current = null;
+                if (startX === null || endX === undefined) return;
+
+                const distance = endX - startX;
+                if (Math.abs(distance) < 42) return;
+                didSwipe.current = true;
+                moveFeatured(distance < 0 ? 1 : -1);
+              }}
+              className="relative min-h-[208px] cursor-pointer touch-pan-y overflow-hidden rounded-[24px] border border-black/5 p-[24px] shadow-sm transition-transform active:scale-[0.99]"
               style={{ background: featured.tint }}
             >
               {/* decorative floating shapes */}
@@ -93,9 +122,19 @@ export function HomeView({ games, onGameSelect, onQuickMatch, onViewRanking }: H
               </div>
 
               {featuredPool.length > 1 && (
-                <div className="absolute bottom-[18px] right-[22px] z-10 flex gap-[6px]">
+                <div className="absolute bottom-[18px] right-[22px] z-10 flex items-center gap-[9px]">
+                  <button
+                    type="button"
+                    onClick={(event) => { event.stopPropagation(); moveFeatured(-1); }}
+                    aria-label="이전 추천 게임"
+                    className="flex h-[24px] w-[24px] items-center justify-center rounded-full bg-[var(--paper)]/65 text-[var(--ink-soft)] transition-transform active:scale-90"
+                  >
+                    <svg aria-hidden width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+                  </button>
+                  <div className="flex gap-[6px]">
                   {featuredPool.map((g, i) => (
                     <button
+                      type="button"
                       key={g.id}
                       onClick={(e) => { e.stopPropagation(); setFeaturedIdx(i); }}
                       aria-label={`추천 ${i + 1}`}
@@ -103,6 +142,15 @@ export function HomeView({ games, onGameSelect, onQuickMatch, onViewRanking }: H
                       style={{ width: i === featuredIdx ? 18 : 7, background: i === featuredIdx ? featured.tintDeep : "rgba(0,0,0,0.18)" }}
                     />
                   ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(event) => { event.stopPropagation(); moveFeatured(1); }}
+                    aria-label="다음 추천 게임"
+                    className="flex h-[24px] w-[24px] items-center justify-center rounded-full bg-[var(--paper)]/65 text-[var(--ink-soft)] transition-transform active:scale-90"
+                  >
+                    <svg aria-hidden width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                  </button>
                 </div>
               )}
             </div>

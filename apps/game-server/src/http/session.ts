@@ -3,6 +3,7 @@ import { Router, type Router as ExpressRouter } from "express";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { JWT_SECRET } from "../config/env.js";
+import { registerGuest } from "./friends.js";
 
 const ADJECTIVES = [
   "무서운",
@@ -84,11 +85,16 @@ export const sessionRouter: ExpressRouter = Router();
  * Swapping in real accounts later only means replacing this endpoint's
  * implementation; Room/game code only ever deals with an opaque playerId.
  */
-sessionRouter.post("/session", (_req, res) => {
+sessionRouter.post("/session", async (_req, res, next) => {
   const guestId = `guest_${uuidv4()}`;
   const displayName = randomDisplayName();
   const token = jwt.sign({ guestId, displayName }, JWT_SECRET, { expiresIn: SESSION_TTL_SECONDS });
 
-  const session: GuestSession = { guestId, displayName, token };
-  res.json(session);
+  try {
+    await registerGuest({ guestId, displayName });
+    const session: GuestSession = { guestId, displayName, token };
+    res.json(session);
+  } catch (error) {
+    next(error);
+  }
 });

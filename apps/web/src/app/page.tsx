@@ -115,7 +115,7 @@ export default function LobbyPage() {
                 />
               )}
               {activeTab === "friends" && (
-                <FriendsView onShowToast={showToast} />
+                <FriendsView session={session} onShowToast={showToast} />
               )}
               {activeTab === "missions" && (
                 <MissionsView onShowToast={showToast} />

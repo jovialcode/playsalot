@@ -7,4 +7,6 @@ dist
 *.tsbuildinfo
 .env
 .env.local
+deploy/dev/.env
+deploy/prod/.env
 .DS_Store

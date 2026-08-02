@@ -54,6 +54,17 @@ export interface GuestSession {
   token: string;
 }
 
+/** A friend record visible in the lobby. */
+export interface Friend {
+  guestId: string;
+  displayName: string;
+}
+
+/** Session data needed to share and use a lobby friend code. */
+export interface FriendProfile {
+  friendCode: string;
+}
+
 /** A single seat in a private room's waiting-room roster. */
 export interface RoomRosterPlayer {
   id: string;

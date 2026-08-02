@@ -22,3 +22,15 @@ export async function getOrCreateGuestSession(): Promise<GuestSession> {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   return session;
 }
+
+export async function friendRequest<T>(session: GuestSession, path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_URL}/api${path}`, {
+    ...init,
+    headers: { Authorization: `Bearer ${session.token}`, "Content-Type": "application/json", ...init?.headers },
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { message?: string } | null;
+    throw new Error(body?.message ?? "친구 정보를 불러오지 못했어요.");
+  }
+  return (response.status === 204 ? undefined : response.json()) as T;
+}
