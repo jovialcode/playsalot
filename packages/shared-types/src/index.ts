@@ -46,12 +46,23 @@ export interface PublicRoomSummary {
   maxPlayers: number;
 }
 
-/** Body of the guest session bootstrap response, GET/POST /api/session. */
+/**
+ * Body of the session bootstrap response (POST /api/session for guests,
+ * GET /api/auth/me for members). Named GuestSession for historical reasons;
+ * it now represents either a guest or a logged-in member — the game/Room layer
+ * only ever reads `guestId` (the opaque playerId) and `token`.
+ */
 export interface GuestSession {
   guestId: string;
   displayName: string;
   /** Opaque token sent back as the join option so the server can verify the session. */
   token: string;
+  /** Profile image from the linked social account; absent for guests. */
+  profileImageUrl?: string;
+  /** 'guest' for anonymous sessions, 'member' once logged in via OAuth or an admin credential. Defaults to 'guest'. */
+  accountType?: "guest" | "member";
+  /** True when the account may access admin-only endpoints. Absent/false for everyone else. */
+  isAdmin?: boolean;
 }
 
 /** A friend record visible in the lobby. */
@@ -83,4 +94,38 @@ export interface RoomRoster {
   minPlayers: number;
   maxPlayers: number;
   started: boolean;
+}
+
+/**
+ * One row of the seasonal leaderboard (GET /api/ranking). `rank` is 1-based and
+ * dense within the season (ties share a rank). `season` is a 'YYYY-MM' key —
+ * scores reset every month by starting a fresh season, see ranking_score.
+ */
+export interface RankingEntry {
+  userId: string;
+  displayName: string;
+  score: number;
+  rank: number;
+}
+
+/**
+ * The current player's own standing for this season (GET /api/ranking/me, and the
+ * `me` field of GET /api/ranking). `rank` is null when the player has no games yet.
+ */
+export interface MyRanking {
+  season: string;
+  score: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  plays: number;
+  rank: number | null;
+}
+
+/** GET /api/ranking response: the season's top entries plus the caller's own standing. */
+export interface Leaderboard {
+  season: string;
+  entries: RankingEntry[];
+  /** The caller's own row; may be outside `entries` if they rank below the cutoff. */
+  me: RankingEntry | null;
 }

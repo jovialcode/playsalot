@@ -7,8 +7,11 @@ import cors from "cors";
 import express from "express";
 import { PORT, REDIS_URL } from "./config/env.js";
 import { registerGames } from "./config/register-games.js";
+import { adminRouter, ensureAdminAccount } from "./http/admin.js";
 import { catalogRouter } from "./http/catalog.js";
 import { friendsRouter } from "./http/friends.js";
+import { oauthRouter } from "./http/oauth.js";
+import { rankingRouter } from "./http/ranking.js";
 import { roomsRouter } from "./http/rooms.js";
 import { sessionRouter } from "./http/session.js";
 import { BoardGameRoom } from "./rooms/board-game-room.js";
@@ -18,8 +21,11 @@ registerGames();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/api", adminRouter);
 app.use("/api", catalogRouter);
 app.use("/api", friendsRouter);
+app.use("/api", oauthRouter);
+app.use("/api", rankingRouter);
 app.use("/api", roomsRouter);
 app.use("/api", sessionRouter);
 app.get("/healthz", (_req, res) => res.json({ ok: true }));
@@ -43,4 +49,6 @@ gameServer.define("board-game", BoardGameRoom).filterBy(["gameId", "mode"]);
 
 httpServer.listen(PORT, () => {
   console.log(`playsalot game-server listening on :${PORT} (redis: ${REDIS_URL ? "on" : "off"})`);
+  // Provision the admin account (from ADMIN_USERNAME/ADMIN_PASSWORD) if configured.
+  void ensureAdminAccount();
 });

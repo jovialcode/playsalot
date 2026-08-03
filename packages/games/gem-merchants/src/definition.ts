@@ -17,7 +17,7 @@ function next(state: GemMerchantsState) { state.turnIndex = (state.turnIndex + 1
 function canAfford(card: Card, gems: number[], bonuses: number[]) { return card.cost.every((cost, i) => cost <= gems[i]! + bonuses[i]!); }
 
 export const gemMerchantsDefinition: GameDefinition<GemMerchantsState, GemMerchantsMove> = {
-  id: "gem-merchants", displayName: "왕국의 보석 상단", minPlayers: 2, maxPlayers: 2,
+  id: "gem-merchants", displayName: "젬마스터", minPlayers: 2, maxPlayers: 2,
   createInitialState: () => new GemMerchantsState(),
   addPlayer(state, player) {
     const id = typeof player === "string" ? player : player.id;

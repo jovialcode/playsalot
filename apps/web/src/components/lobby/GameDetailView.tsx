@@ -9,7 +9,6 @@ interface GameDetailViewProps {
   onQuickMatch: (gameId: string) => void;
   onPlayWithBot: (gameId: string) => void;
   onCreateRoom: (gameId: string, visibility: "public" | "private") => void;
-  onInviteFriends: (gameId: string) => void;
   onJoinRoomByCode: (code: string) => void;
   onOpenPublicRooms: (gameId: string) => void;
   onShowToast: (msg: string) => void;
@@ -21,7 +20,6 @@ export function GameDetailView({
   onQuickMatch,
   onPlayWithBot,
   onCreateRoom,
-  onInviteFriends,
   onJoinRoomByCode,
   onOpenPublicRooms,
   onShowToast
@@ -129,15 +127,6 @@ export function GameDetailView({
               </div>
             </div>
 
-            <div onClick={() => game.isPlayable ? onInviteFriends(game.id) : onShowToast("이 게임은 아직 준비 중이에요!")} className="flex min-h-[110px] cursor-pointer flex-col justify-between rounded-[20px] border border-[var(--mist)] bg-[var(--paper)] p-[20px] shadow-sm transition-transform active:scale-[0.98]">
-              <div className="flex h-[36px] w-[36px] items-center justify-center rounded-[10px] bg-[var(--sage-tint)]/50 text-[var(--sage)]">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              </div>
-              <div className="flex flex-col gap-[2px]">
-                <div className="text-[15px] font-bold tracking-[-0.02em] text-[var(--ink)]">친구 초대</div>
-                <div className="text-[12px] font-medium text-[var(--ink-mute)]">비공개방 링크를 바로 보내요</div>
-              </div>
-            </div>
           </div>
 
           {game.isPlayable && (

@@ -2,26 +2,29 @@
 
 import { useEffect, useState } from "react";
 import type { Friend, GuestSession } from "@playsalot/shared-types";
-import { friendRequest } from "@/lib/session";
+import { friendRequest, isMember } from "@/lib/session";
+import { LoginRequired } from "./LoginRequired";
 
 interface FriendsViewProps {
   session: GuestSession | null;
   onShowToast: (message: string) => void;
+  onGoLogin: () => void;
 }
 
 function Avatar({ name }: { name: string }) {
   return <div className="flex h-[40px] w-[40px] flex-shrink-0 items-center justify-center rounded-full bg-[var(--sage)] font-[var(--font-display)] text-[15px] text-[var(--cream)]">{name[0]}</div>;
 }
 
-export function FriendsView({ session, onShowToast }: FriendsViewProps) {
+export function FriendsView({ session, onShowToast, onGoLogin }: FriendsViewProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendCode, setFriendCode] = useState("");
   const [myCode, setMyCode] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [loading, setLoading] = useState(true);
+  const loggedIn = isMember(session);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !isMember(session)) return;
     Promise.all([
       friendRequest<Friend[]>(session, "/friends"),
       friendRequest<{ friendCode: string }>(session, "/friends/profile"),
@@ -47,6 +50,10 @@ export function FriendsView({ session, onShowToast }: FriendsViewProps) {
       setFriends((current) => current.filter((item) => item.guestId !== friend.guestId));
       onShowToast(`${friend.displayName}님을 삭제했어요.`);
     } catch (error) { onShowToast(error instanceof Error ? error.message : "친구 삭제에 실패했어요."); }
+  }
+
+  if (!loggedIn) {
+    return <LoginRequired feature="친구" title="친구" eyebrow="라운지" onGoLogin={onGoLogin} />;
   }
 
   return <div className="flex flex-col">

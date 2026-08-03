@@ -88,7 +88,7 @@ function applyAttack(state: BattleshipState, playerIdx: number, move: Extract<Ba
 
 export const battleshipDefinition: GameDefinition<BattleshipState, BattleshipMove> = {
   id: "battleship",
-  displayName: "배틀쉽",
+  displayName: "해전",
   minPlayers: 2,
   maxPlayers: MAX_PLAYERS,
 

@@ -4,10 +4,13 @@ import { Client, Room, ServerError } from "@colyseus/core";
 import type { Schema } from "@colyseus/schema";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/env.js";
+import { recordMatchResult } from "../http/ranking.js";
 
 interface AuthPayload {
   guestId: string;
   displayName: string;
+  /** "member" once logged in via OAuth/admin; absent for guests. */
+  accountType?: "guest" | "member";
 }
 
 const BOT_MOVE_DELAY_MS = 500;
@@ -82,15 +85,24 @@ export class BoardGameRoom extends Room<Schema> {
 
   /** Verifies the client's claimed guestId against its signed session token before allowing a join. */
   onAuth(_client: Client, options: JoinRoomOptions): AuthPayload {
+    let payload: AuthPayload;
     try {
-      const payload = jwt.verify(options.token, JWT_SECRET) as AuthPayload;
+      payload = jwt.verify(options.token, JWT_SECRET) as AuthPayload;
       if (payload.guestId !== options.guestId) {
         throw new Error("guestId mismatch");
       }
-      return payload;
     } catch {
       throw new ServerError(401, "Invalid or expired session token");
     }
+
+    // Creating a hosted waiting room (invite-code "private" / listed "public") is a
+    // login-required feature: only the creator passes mode private/public (joinById
+    // omits mode), so this gates room creation to members while still letting guests
+    // JOIN a room by code. Quick/bot matchmaking stays open to guests.
+    if ((options.mode === "private" || options.mode === "public") && payload.accountType !== "member") {
+      throw new ServerError(403, "로그인이 필요해요.");
+    }
+    return payload;
   }
 
   onJoin(client: Client, _options: JoinRoomOptions, auth: AuthPayload): void {
@@ -160,6 +172,19 @@ export class BoardGameRoom extends Room<Schema> {
     if (gameOver) {
       this.broadcast("game-over", gameOver);
       this.lock();
+      // Only human-vs-human matches count toward the seasonal ranking; bot games
+      // are excluded so playing the computer can't farm score. Fire-and-forget:
+      // recordMatchResult never throws, so a persistence hiccup can't stall the room.
+      if (!this.isVsBot) {
+        void recordMatchResult({
+          participants: this.joinedPlayerIds.map((id) => ({
+            userId: id,
+            displayName: this.displayNameByPlayerId.get(id) ?? id,
+          })),
+          winnerId: gameOver.winnerId,
+          draw: gameOver.draw,
+        });
+      }
       return;
     }
 

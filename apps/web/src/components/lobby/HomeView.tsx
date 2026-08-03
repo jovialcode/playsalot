@@ -17,11 +17,11 @@ const TOP_RANKS = [
 ];
 
 const TICKER_ITEMS = [
-  "서연님이 할리갈리에서 승리했어요",
+  "서연님이 파이브벨에서 승리했어요",
   "민수님이 오목 대국을 시작했어요",
-  "도윤님이 우노에서 5연승 중이에요",
+  "도윤님이 라스트원에서 5연승 중이에요",
   "지호님이 만칼라에 입장했어요",
-  "하은님이 배틀십에서 승리했어요",
+  "하은님이 해전에서 승리했어요",
 ];
 
 export function HomeView({ games, onGameSelect, onQuickMatch, onViewRanking }: HomeViewProps) {

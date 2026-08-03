@@ -5,6 +5,9 @@ import { GameService } from "@/services/game.service";
 import { MatchState } from "@/types/lobby";
 import { clearReconnectionToken, saveReconnectionToken } from "@/lib/reconnect";
 import { supportsGameScreen } from "@/features/games/game-ui-registry";
+import { isMember } from "@/lib/session";
+
+const LOGIN_REQUIRED_MESSAGE = "로그인이 필요해요. 마이페이지에서 로그인해 주세요.";
 
 export interface WaitingRoom {
   room: Room;
@@ -116,6 +119,9 @@ export function useMatch(session: GuestSession | null, games: GameCatalogEntry[]
 
   const createRoom = async (gameId: string, visibility: "public" | "private") => {
     if (!session) return;
+    // Creating/hosting a room is login-required; guests are gated here (and again
+    // server-side in BoardGameRoom.onAuth). Joining by code stays open to guests.
+    if (!isMember(session)) { onShowToast(LOGIN_REQUIRED_MESSAGE); return; }
     setError(null);
     if (!supportsGameScreen(gameId)) {
       onShowToast("이 게임 화면은 아직 준비 중이에요!");
@@ -172,6 +178,7 @@ export function useMatch(session: GuestSession | null, games: GameCatalogEntry[]
 
   const createPublicRoom = async (gameId: string) => {
     if (!session) return;
+    if (!isMember(session)) { onShowToast(LOGIN_REQUIRED_MESSAGE); return; }
     setError(null);
     try {
       enterWaitingRoom(await GameService.createPublicRoom(gameId, session));

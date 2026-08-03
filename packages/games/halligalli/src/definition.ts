@@ -118,7 +118,7 @@ function applyRing(state: HalliGalliState, idx: number): GameMoveResult {
 
 export const halliGalliDefinition: GameDefinition<HalliGalliState, HalliGalliMove> = {
   id: "halli",
-  displayName: "할리갈리",
+  displayName: "파이브벨",
   minPlayers: 2,
   maxPlayers: MAX_PLAYERS,
 

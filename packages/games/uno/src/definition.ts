@@ -155,7 +155,7 @@ function applyPlayCard(state: UnoState, playerIdx: number, card: string): GameMo
   // Win check
   if (hand.length === 0) {
     state.winnerId = state.players[playerIdx]!;
-    state.message = `🎉 ${playerName(state, playerIdx)}님이 우노로 승리했어요!`;
+    state.message = `🎉 ${playerName(state, playerIdx)}님이 라스트원으로 승리했어요!`;
     return { ok: true };
   }
 
@@ -264,7 +264,7 @@ function chooseBotPlay(state: UnoState, botIdx: number): UnoMove {
 
 export const unoDefinition: GameDefinition<UnoState, UnoMove> = {
   id: "uno",
-  displayName: "우노",
+  displayName: "라스트원",
   minPlayers: 2,
   maxPlayers: MAX_PLAYERS,
 

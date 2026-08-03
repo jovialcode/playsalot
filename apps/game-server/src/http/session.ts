@@ -92,7 +92,9 @@ sessionRouter.post("/session", async (_req, res, next) => {
 
   try {
     await registerGuest({ guestId, displayName });
-    const session: GuestSession = { guestId, displayName, token };
+    // accountType is explicit so the client can tell guests from members and gate
+    // login-required features (friends, ranking, room creation) accordingly.
+    const session: GuestSession = { guestId, displayName, token, accountType: "guest" };
     res.json(session);
   } catch (error) {
     next(error);

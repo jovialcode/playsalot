@@ -99,7 +99,6 @@ export default function LobbyPage() {
               onQuickMatch={startQuickMatch}
               onPlayWithBot={(id) => { handlePlay(id, true); }}
               onCreateRoom={createRoom}
-              onInviteFriends={(id) => { createRoom(id, "private"); }}
               onJoinRoomByCode={joinRoomByCode}
               onOpenPublicRooms={openPublicRooms}
               onShowToast={showToast}
@@ -115,13 +114,13 @@ export default function LobbyPage() {
                 />
               )}
               {activeTab === "friends" && (
-                <FriendsView session={session} onShowToast={showToast} />
+                <FriendsView session={session} onShowToast={showToast} onGoLogin={() => setActiveTab("my")} />
               )}
               {activeTab === "missions" && (
                 <MissionsView onShowToast={showToast} />
               )}
               {activeTab === "ranking" && (
-                <RankingView />
+                <RankingView session={session} onGoLogin={() => setActiveTab("my")} />
               )}
               {activeTab === "my" && (
                 <MyPageView session={session} />

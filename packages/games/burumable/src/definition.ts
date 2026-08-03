@@ -51,7 +51,7 @@ function resolveLanding(state: BurumableState, playerIndex: number) {
 function bankrupt(state: BurumableState, index: number) { state.bankrupt[index] = 1; for (let i = 0; i < BOARD_SIZE; i += 1) if (state.owners[i] === index) { state.owners[i] = -1; state.levels[i] = 0; } state.message = `${playerName(state, index)}님이 파산했습니다.`; if (activeCount(state) <= 1) state.winnerId = state.players.find((_, i) => state.bankrupt[i] === 0) ?? ""; else finishTurn(state); }
 
 export const burumableDefinition: GameDefinition<BurumableState, BurumableMove> = {
-  id: "burumable", displayName: "부루마블 스타일", minPlayers: 2, maxPlayers: 4,
+  id: "burumable", displayName: "리치타운", minPlayers: 2, maxPlayers: 4,
   createInitialState: () => new BurumableState(),
   addPlayer(state, player) { const playerId = typeof player === "string" ? player : player.id; state.players.push(playerId); state.playerNames.push(typeof player === "string" ? player : player.displayName); state.positions.push(0); state.cash.push(STARTING_CASH); state.bankrupt.push(0); if (state.players.length >= 2) state.message = `${playerName(state, 0)}님의 차례: 주사위를 굴리세요.`; },
   applyMove(state, playerId, move): GameMoveResult {
